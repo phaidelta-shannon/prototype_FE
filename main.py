@@ -1,17 +1,7 @@
-from nicegui import ui, app  # ✅ app is used for static files
+from nicegui import ui, app  # app is used for static files
 
-# Serve the static folder
-app.add_static_files('/static', 'static')  # ✅ CORRECT for v2.19.0
-
-# Add background image via CSS
-ui.add_head_html('''
-<style>
-body {
-    background: url("/static/background.png") no-repeat center center fixed;
-    background-size: cover;
-}
-</style>
-''')
+# Serve the static folder for bckg img
+app.add_static_files('/static', 'static')  # CORRECT for v2.19.0
 
 # your existing page routes
 from app.auth import login_page, signup_page
