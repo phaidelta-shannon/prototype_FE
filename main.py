@@ -4,7 +4,7 @@ from nicegui import ui, app  # app is used for static files
 app.add_static_files('/static', 'static')  # CORRECT for v2.19.0
 
 # your existing page routes
-from app.auth import login_page, signup_page
+from app.auth import login_page, signup_page, guest_page
 from app.onboarding import onboarding_page
 from app.onboarding_questions import onboarding_questions_page
 from app.planner import planner_page
@@ -19,6 +19,7 @@ from app.trip_history_details_page import trip_history_details_page
 def route():
     ui.page('/')(login_page)
     ui.page('/signup')(signup_page)
+    ui.page('/guest')(guest_page)
     ui.page('/onboarding')(onboarding_page)
     ui.page('/onboarding-questions')(onboarding_questions_page)
     ui.page('/profile')(profile_page)
