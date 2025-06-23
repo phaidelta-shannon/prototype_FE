@@ -11,5 +11,5 @@ def trip_options_page():
                 ui.label(f'Trip Option {i}').classes('w-full text-xl font-semibold bg-gray-400 rounded')
                 ui.label('A ... B ... C ... D ...')
                 ui.label(f'Total Budget: Rs. {budget:,}')
-                ui.button('View Details', on_click=lambda: ui.navigate.to('/trip-details')).classes('rounded-lg')
+                ui.button('View Details', on_click=lambda: ui.navigate.to('/trip_schedule')).classes('rounded-lg')
                 bottom_nav()

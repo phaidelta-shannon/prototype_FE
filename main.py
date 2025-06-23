@@ -12,6 +12,7 @@ from app.trip_options import trip_options_page
 from app.trip_details import trip_details_page
 from app.profile import profile_page
 from app.schedule import schedule_page
+from app.trip_schedule import trip_schedule_page
 from app.history import history_page
 from app.trip_history_details_page import trip_history_details_page
 
@@ -25,6 +26,7 @@ def route():
     ui.page('/trip-options')(trip_options_page)
     ui.page('/trip-details')(trip_details_page)
     ui.page('/schedule')(schedule_page)
+    ui.page('/trip_schedule')(trip_schedule_page)
     ui.page('/history')(history_page)
     ui.page('/trip-history-details')(trip_history_details_page)
 
