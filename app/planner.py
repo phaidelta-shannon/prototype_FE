@@ -85,6 +85,75 @@ def planner_page():
             # Ensures correct visibility for solo on first load
             update_sections('solo')
 
+        # Collapsible Preferences Section
+        with ui.expansion('Trip Preferences (optional)').classes('mt-4 w-full rounded-2xl backdrop-blur-sm bg-white/40'):
+            preferences_column = ui.column().classes('w-full items-center')
+            
+            embedded_questions = [
+                {'title': 'Stay Preferences', 'options': ['Hotel', 'Hostel', 'Resort', 'Homestay', 'Camping', 'Guesthouse', 'BnB', 'Villa', 'Treehouse', 'Capsule']},
+                {'title': 'Food Preferences', 'options': ['Vegetarian', 'Non-Vegetarian', 'Vegan', 'Local Cuisine', 'Street Food', 'Fine Dining', 'Fast Food', 'Seafood', 'Organic', 'Fusion']},
+                {'title': 'Transport Preferences', 'options': ['Flight', 'Train', 'Bus', 'Car Rental', 'Bike Rental', 'Public Transport', 'Walking', 'Boat', 'Helicopter', 'Campervan']},
+                {'title': 'Sightseeing Interests', 'options': ['Historical', 'Nature', 'Museums', 'Beaches', 'Mountains', 'Cities', 'Cultural', 'Spiritual', 'Wildlife', 'Architecture']},
+                {'title': 'Activity Preferences', 'options': ['Hiking', 'Surfing', 'Skiing', 'Snorkeling', 'Shopping', 'Spa', 'Nightlife', 'Photography', 'Volunteering', 'Festivals']},
+            ]
+            embedded_selected_answers = [[] for _ in embedded_questions]
+            embedded_index = {'i': 0}
+
+            def render_embedded_question():
+                preferences_column.clear()
+                q_index = embedded_index['i']
+                q = embedded_questions[q_index]
+
+                preferences_column.clear()
+                with preferences_column:
+                    ui.label(f'Q{q_index + 1}/{len(embedded_questions)}: {q["title"]}').classes('text-lg font-medium mt-2 mb-2')
+
+                    with ui.grid(columns=2).classes('gap-2'):
+                        for opt in q['options']:
+                            is_selected = opt in embedded_selected_answers[q_index]
+                            ui.button(
+                                opt,
+                                on_click=lambda o=opt: toggle_embedded_option(o)
+                            ).classes(
+                                f'border rounded-xl text-black {"bg-green-300" if is_selected else "bg-white"}'
+                            )
+
+                    with ui.row().classes('mt-4 w-full justify-center gap-4'):
+                        back_btn = ui.button('Back', on_click=embedded_prev_question).props('color=none').classes('bg-gray-300 text-black rounded-lg')
+                        if q_index == 0:
+                            back_btn.props('disable')
+
+                        ui.button('Skip', on_click=embedded_next_question).classes('bg-gray-300 text-black rounded-lg')
+
+                        if q_index < len(embedded_questions) - 1:
+                            ui.button('Next', on_click=embedded_next_question).classes('bg-blue-500 text-white rounded-lg')
+                        else:
+                            ui.button('Submit Preferences', on_click=submit_embedded_answers).classes('bg-green-500 text-white rounded-lg')
+
+            def toggle_embedded_option(option):
+                q_index = embedded_index['i']
+                if option in embedded_selected_answers[q_index]:
+                    embedded_selected_answers[q_index].remove(option)
+                else:
+                    embedded_selected_answers[q_index].append(option)
+                render_embedded_question()
+
+            def embedded_next_question():
+                if embedded_index['i'] < len(embedded_questions) - 1:
+                    embedded_index['i'] += 1
+                    render_embedded_question()
+
+            def embedded_prev_question():
+                if embedded_index['i'] > 0:
+                    embedded_index['i'] -= 1
+                    render_embedded_question()
+
+            def submit_embedded_answers():
+                ui.notify('Preferences saved!', type='positive')
+                print('Saved preferences:', embedded_selected_answers)
+
+            render_embedded_question()
+
         # Submit
         ui.button('Find Best Results', on_click=lambda: ui.navigate.to('/trip-options')).classes('mt-4 w-full rounded-2xl mb-20')
 
