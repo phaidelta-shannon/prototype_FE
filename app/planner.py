@@ -14,7 +14,7 @@ def planner_page():
     background_image()
     top_nav()
 
-    with ui.column().classes('w-full max-w-4xl mx-auto mt-16'):
+    with ui.column().classes('w-full max-w-4xl mx-auto mt-12'):
         ui.label('Plan Your Trip').classes('text-3xl font-bold')
 
         # Destination input
@@ -105,7 +105,7 @@ def planner_page():
             update_sections('solo')
 
         # Collapsible Preferences Section
-        with ui.expansion('Trip Preferences (optional)').classes('mt-4 w-full rounded-2xl backdrop-blur-sm bg-white/40'):
+        with ui.expansion('Trip Preferences (optional)').classes('mt-2 w-full rounded-2xl backdrop-blur-sm bg-white/40'):
             preferences_column = ui.column().classes('w-full items-center')
             
             embedded_questions = [
@@ -142,12 +142,12 @@ def planner_page():
                         if q_index == 0:
                             back_btn.props('disable')
 
-                        ui.button('Skip', on_click=embedded_next_question).classes('bg-gray-300 text-black rounded-lg')
+                        ui.button('Skip', on_click=embedded_next_question).props('color=none').classes('bg-gray-300 text-black rounded-lg')
 
                         if q_index < len(embedded_questions) - 1:
                             ui.button('Next', on_click=embedded_next_question).classes('bg-blue-500 text-white rounded-lg')
                         else:
-                            ui.button('Submit Preferences', on_click=submit_embedded_answers).classes('bg-green-500 text-white rounded-lg')
+                            ui.button('Submit', on_click=submit_embedded_answers).props('color=none').classes('bg-green-400 text-white rounded-lg')
 
             def toggle_embedded_option(option):
                 q_index = embedded_index['i']
