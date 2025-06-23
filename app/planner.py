@@ -62,6 +62,12 @@ def planner_page():
                 group_section.visible = value != 'solo'
                 family_section.visible = value == 'family'
 
+                if value == 'family':
+                    num_travelers.props('readonly')
+                    update_total_travelers()
+                else:
+                    num_travelers.props(remove='readonly')
+
             # Note: This is not reactive binding — an `on_change` event handler on the radio input is used to manually toggle visibility of other UI sections (group and family travelers).
             # The `update_sections()` function handles this logic.
             # Since NiceGUI doesn't auto-trigger on_change on load, we also call it manually once to ensure the correct sections are visible at first render.
@@ -75,12 +81,25 @@ def planner_page():
 
             group_section = ui.column().classes('w-full mt-2')
             with group_section:
-                ui.number(label='Number of Travelers', min=1, value=2).classes('w-full')
+                num_travelers = ui.number(label='Number of Travelers', min=1, value=2).classes('w-full')
 
             family_section = ui.column().classes('w-full')
             with family_section:
-                ui.number(label='Number of Children (2-11 yrs)', min=0, value=0).classes('w-full')
-                ui.number(label='Number of Infants (Under 2 yrs)', min=0, value=0).classes('w-full')
+                num_adults = ui.number(label='Number of Adults', min=1, value=2).classes('w-full')
+                num_children = ui.number(label='Number of Children (2-11 yrs)', min=0, value=0).classes('w-full')
+                num_infants = ui.number(label='Number of Infants (Under 2 yrs)', min=0, value=0).classes('w-full')
+
+            def update_total_travelers():
+                a = num_adults.value or 0
+                c = num_children.value or 0
+                i = num_infants.value or 0
+                total = a + c + i
+                num_travelers.value = total
+                num_travelers.update()
+
+            num_adults.on('blur', lambda _: update_total_travelers())
+            num_children.on('blur', lambda _: update_total_travelers())
+            num_infants.on('blur', lambda _: update_total_travelers())
 
             # Ensures correct visibility for solo on first load
             update_sections('solo')
