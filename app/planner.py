@@ -1,4 +1,5 @@
 from nicegui import ui
+from datetime import datetime
 from app.components import bottom_nav, top_nav, background_image
 
 def parse_date_range(inp: str):
@@ -72,10 +73,9 @@ def planner_page():
             # The `update_sections()` function handles this logic.
             # Since NiceGUI doesn't auto-trigger on_change on load, we also call it manually once to ensure the correct sections are visible at first render.
 
-            trip_type = 'solo'
-            ui.radio(
+            trip_type_radio = ui.radio(
                 {'solo': 'Solo', 'family': 'Family', 'friends': 'Friends'},
-                value=trip_type,
+                value='solo',
                 on_change=lambda e: update_sections(e.value)
             ).props('inline flat').classes('w-full')
 
@@ -101,8 +101,26 @@ def planner_page():
             num_children.on('blur', lambda _: update_total_travelers())
             num_infants.on('blur', lambda _: update_total_travelers())
 
-            # Ensures correct visibility for solo on first load
-            update_sections('solo')
+            # Ensures correct visibility of values on first load
+            def update_sections(value):
+                group_section.visible = value != 'solo'
+                family_section.visible = value == 'family'
+
+                if value == 'solo':
+                    num_travelers.value = 1
+                    num_travelers.props('readonly')
+                    num_travelers.update()
+                elif value == 'family':
+                    num_travelers.props('readonly')
+                    update_total_travelers()
+                else:  # friends
+                    num_travelers.props(remove='readonly')
+                    if num_travelers.value < 2:
+                        num_travelers.value = 2
+                    num_travelers.update()
+                
+            update_sections(trip_type_radio.value)
+
 
         # Collapsible Preferences Section
         with ui.expansion('Trip Preferences (optional)').classes('mt-2 w-full rounded-2xl backdrop-blur-sm bg-white/40'):
@@ -173,7 +191,99 @@ def planner_page():
 
             render_embedded_question()
 
-        # Submit
-        ui.button('Find Best Results', on_click=lambda: ui.navigate.to('/trip-options')).classes('mt-4 w-full rounded-2xl mb-20')
+        # Validates trip form inputs and navigates to trip options if all required fields are valid.
+        def handle_submit():
+            now = datetime.now().date()
+
+            # Parse date range
+            parsed_dates = parse_date_range(date_range.value) if date_range.value else None
+            try:
+                from_date = datetime.strptime(parsed_dates['from'], '%Y-%m-%d').date() if parsed_dates else None
+                to_date = datetime.strptime(parsed_dates['to'], '%Y-%m-%d').date() if parsed_dates else None
+            except Exception:
+                from_date = to_date = None
+            
+            # Structure preferences into named categories
+            preference_keys = ['stay', 'food', 'transport', 'sightseeing', 'activity']
+            preferences_structured = {
+                key: embedded_selected_answers[i] for i, key in enumerate(preference_keys)
+            }
+
+            # Build data object
+            data = {
+                'destination': destination.value.strip() if destination.value else '',
+                'dates': {
+                    'from': str(from_date) if from_date else None,
+                    'to': str(to_date) if to_date else None,
+                    'num_days': (to_date - from_date).days + 1 if from_date and to_date else None,
+                },
+                'budget': budget_range.value,
+                'trip_type': trip_type_radio.value,
+                'num_travelers': int(num_travelers.value),
+                'preferences': preferences_structured  # optional
+            }
+
+            # Enforce logic based on trip type
+            trip_type = data['trip_type']
+            if trip_type == 'solo' and data['num_travelers'] != 1:
+                errors.append("Solo trips must have exactly 1 traveler.")
+
+            if trip_type == 'friends' and data['num_travelers'] < 2:
+                errors.append("Friends trip must have at least 2 travelers.")
+
+            # Family breakdown required
+            if data['trip_type'] == 'family':
+                num_adults_val = int(num_adults.value)
+                num_children_val = int(num_children.value)
+                num_infants_val = int(num_infants.value)
+
+                if num_adults_val < 1:
+                    ui.notify("At least one adult is required for family trips.", type='negative')
+                    return
+
+                family_total = num_adults_val + num_children_val + num_infants_val
+                if family_total != data['num_travelers']:
+                    ui.notify(f"Total travelers ({data['num_travelers']}) must match breakdown (adults + children + infants = {family_total}).", type='negative')
+                    return
+
+                data['traveler_breakdown'] = {
+                    'adults': num_adults_val,
+                    'children': num_children_val,
+                    'infants': num_infants_val,
+                }
+
+            # Validate required fields
+            errors = []
+            if not data['destination']:
+                errors.append("Destination is required.")
+
+            if not from_date or not to_date:
+                errors.append("Please select a valid date range.")
+            elif from_date < now:
+                errors.append("Start date must be today or in the future.")
+            elif to_date <= from_date:
+                errors.append("End date must be after start date.")
+
+            if not data['budget'] or data['budget']['min'] >= data['budget']['max']:
+                errors.append("Please set a valid budget range (min should be less than max).")
+
+            if not data['trip_type']:
+                errors.append("Trip type is required.")
+
+            if not data['num_travelers'] or data['num_travelers'] < 1:
+                errors.append("At least one traveler is required.")
+
+            if errors:
+                for e in errors:
+                    ui.notify(e, type='negative')
+                return
+
+            # Log or store the data here for now
+            print("Structured Trip Data:", data)
+
+            # Navigate if all good
+            ui.navigate.to('/trip-options')
+
+        ui.button('Find Best Results', on_click=handle_submit).classes('mt-4 w-full rounded-2xl mb-20')
 
         bottom_nav()

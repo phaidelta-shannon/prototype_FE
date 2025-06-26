@@ -1,8 +1,6 @@
 from nicegui import ui
 from app.components import top_nav, bottom_nav, background_image
 
-selected_items = set()  # Tracks selected (day, title) tuples
-
 def trip_schedule_page():
     background_image()
     top_nav()
@@ -38,7 +36,10 @@ def trip_schedule_page():
 
             with ui.row().classes('w-full gap-2 px-1').style('flex-wrap: nowrap;'):
                 ui.label('Rs. XX,XXX').classes('flex-1 bg-gray-500 text-white text-center py-3 rounded-xl font-bold text-base')
-                ui.button('SELECT THIS TRIP', on_click=lambda: ui.notify('Trip selected!', type='positive')).props('unelevated').classes(
+                ui.button(
+                    'SELECT THIS TRIP',
+                    on_click=lambda: ui.notify('Trip selected!', type='positive')
+                ).props('unelevated').classes(
                     'flex-1 bg-blue-400 text-white py-3 rounded-xl font-bold text-base'
                 ).style('height: 48px;')
 
@@ -50,13 +51,7 @@ def trip_schedule_page():
                         ui.label(day.upper()).classes('font-semibold text-lg')
 
                     for title, time, icon, price in events:
-                        key = (day, title)
-                        is_selected = key in selected_items
-                        row_class = 'bg-blue-200' if is_selected else 'bg-white'
-
-                        with ui.row().classes(
-                            f'w-full items-center justify-between {row_class} px-4 py-3 rounded cursor-pointer'
-                        ).on('click', lambda d=day, t=title: toggle(d, t)):
+                        with ui.row().classes('w-full items-center justify-between bg-white px-4 py-3 rounded'):
                             with ui.row().classes('items-center gap-2 overflow-hidden'):
                                 ui.icon(icon).classes('text-blue-600')
                                 ui.label(title).classes('text-sm truncate max-w-[160px] md:max-w-[300px]')
@@ -65,13 +60,5 @@ def trip_schedule_page():
                                 ui.label(time).classes('text-sm text-gray-500')
 
             bottom_nav()
-
-    def toggle(day, title):
-        key = (day, title)
-        if key in selected_items:
-            selected_items.remove(key)
-        else:
-            selected_items.add(key)
-        render()
 
     render()
